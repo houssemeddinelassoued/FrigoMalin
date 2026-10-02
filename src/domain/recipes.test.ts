@@ -4,10 +4,25 @@ import type { StockItem } from './types';
 
 describe('Recettes anti-gaspi', () => {
   it('ne confond pas le riz et le chorizo', () => {
-    const item: StockItem = { id: 'chorizo', name: 'Chorizo', barcode: null, quantity: 200, unit: 'g', expiresOn: '2026-10-05', dateKind: 'DLC', location: 'frigo', addedOn: '2026-10-01', status: 'en-stock' };
+    const item: StockItem = {
+      id: 'chorizo',
+      name: 'Chorizo',
+      barcode: null,
+      quantity: 200,
+      unit: 'g',
+      expiresOn: '2026-10-05',
+      dateKind: 'DLC',
+      location: 'frigo',
+      addedOn: '2026-10-01',
+      status: 'en-stock',
+    };
     const bowl = recipes.find((recipe) => recipe.id === 'bowl');
     if (!bowl) throw new Error('Recette manquante');
-    expect(recipeMatches(bowl, [item], new Date(2026, 9, 2)).find((ingredient) => ingredient.name === 'Riz')?.available).toBe(false);
+    expect(
+      recipeMatches(bowl, [item], new Date(2026, 9, 2)).find(
+        (ingredient) => ingredient.name === 'Riz',
+      )?.available,
+    ).toBe(false);
   });
   it('embarque cinq recettes avec ingrédients et étapes', () => {
     expect(recipes.length).toBeGreaterThanOrEqual(5);

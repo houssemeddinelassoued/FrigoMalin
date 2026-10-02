@@ -104,6 +104,16 @@ export const recipes: readonly RecipeDetails[] = [
   },
 ];
 
+function normalizedWords(name: string): string {
+  return ` ${name
+    .toLocaleLowerCase('fr')
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/œ/g, 'oe')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()} `;
+}
+
 export function recipeMatches(recipe: Recipe, stock: readonly StockItem[], today: Date) {
   return recipe.ingredients.map((ingredient) => ({
     ...ingredient,
@@ -112,7 +122,7 @@ export function recipeMatches(recipe: Recipe, stock: readonly StockItem[], today
         item.status === 'en-stock' &&
         item.quantity > 0 &&
         expiryState(item, today) !== 'dépassée' &&
-        item.name.toLocaleLowerCase('fr').includes(ingredient.name.toLocaleLowerCase('fr')),
+        normalizedWords(item.name).includes(normalizedWords(ingredient.name)),
     ),
   }));
 }

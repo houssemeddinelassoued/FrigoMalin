@@ -25,27 +25,60 @@ afterEach(async () => {
 
 describe('App', () => {
   it('revérifie la DLC à l’instant de la consommation après minuit', async () => {
-    const item: StockItem = { id: 'midnight', name: 'Crème du jour', barcode: null, quantity: 200, unit: 'g', expiresOn: '2026-10-02', dateKind: 'DLC', location: 'frigo', addedOn: '2026-10-01', status: 'en-stock' };
+    const item: StockItem = {
+      id: 'midnight',
+      name: 'Crème du jour',
+      barcode: null,
+      quantity: 200,
+      unit: 'g',
+      expiresOn: '2026-10-02',
+      dateKind: 'DLC',
+      location: 'frigo',
+      addedOn: '2026-10-01',
+      status: 'en-stock',
+    };
     await addStock(item);
     render(<App />);
     fireEvent.click(await screen.findByRole('button', { name: 'Consommé', exact: true }));
     vi.setSystemTime(new Date(2026, 9, 3));
     fireEvent.click(screen.getByRole('button', { name: 'Confirmer la consommation' }));
-    expect(await screen.findByText('DLC dépassée : ne consommez pas cet aliment.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('DLC dépassée : ne consommez pas cet aliment.'),
+    ).toBeInTheDocument();
     expect((await loadHousehold()).consumptions).toHaveLength(0);
   });
 
   it('ignore une réponse produit devenue obsolète après modification du code', async () => {
     let resolveResponse: (response: Response) => void = () => undefined;
-    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>((resolve) => { resolveResponse = resolve; })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveResponse = resolve;
+          }),
+      ),
+    );
     window.location.hash = '/scanner';
     render(<App />);
     fireEvent.click(await screen.findByRole('button', { name: 'Code-barres', exact: true }));
-    fireEvent.input(screen.getByLabelText('Code EAN du produit'), { target: { value: '8000430000216' } });
+    fireEvent.input(screen.getByLabelText('Code EAN du produit'), {
+      target: { value: '8000430000216' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Rechercher sur Open Food Facts' }));
-    fireEvent.input(screen.getByLabelText('Code EAN du produit'), { target: { value: '3017620422003' } });
-    await act(async () => { resolveResponse(new Response(JSON.stringify({ status: 1, product: { product_name: 'Ancien produit' } }))); });
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Rechercher sur Open Food Facts' })).not.toBeDisabled());
+    fireEvent.input(screen.getByLabelText('Code EAN du produit'), {
+      target: { value: '3017620422003' },
+    });
+    await act(() => {
+      resolveResponse(
+        new Response(JSON.stringify({ status: 1, product: { product_name: 'Ancien produit' } })),
+      );
+    });
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Rechercher sur Open Food Facts' }),
+      ).not.toBeDisabled(),
+    );
     expect(screen.getByLabelText('Nom de l’aliment')).toHaveValue('');
   });
 

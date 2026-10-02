@@ -50,7 +50,18 @@ export function App() {
     }
   });
   const main = useRef<HTMLElement>(null);
-  const today = new Date();
+  const [today, setToday] = useState(() => new Date());
+  useEffect(() => {
+    const refresh = () => setToday(new Date());
+    const interval = window.setInterval(refresh, 60000);
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, []);
   useEffect(() => {
     const update = () => {
       setView(currentView());
@@ -173,13 +184,13 @@ export function App() {
                   }
                   onConsume={(id, quantity) =>
                     action(
-                      () => consumeStock(id, quantity, today),
+                      () => consumeStock(id, quantity, new Date()),
                       'Consommation enregistrée. Merci de donner une chance à chaque aliment !',
                     )
                   }
                   onMove={(id, location) =>
                     void action(
-                      () => moveStock(id, location, today),
+                      () => moveStock(id, location, new Date()),
                       'Aliment déplacé. La date renseignée reste inchangée.',
                     )
                   }

@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import {
   Barcode,
   CalendarDays,
@@ -34,21 +34,37 @@ export default function ScannerView({ busy, onSave }: ScannerViewProps) {
   const [error, setError] = useState('');
   const [searching, setSearching] = useState(false);
   const [productInfo, setProductInfo] = useState('');
+  const requestRef = useRef(0);
+  const productFromSearchRef = useRef(false);
+  useEffect(
+    () => () => {
+      requestRef.current += 1;
+    },
+    [],
+  );
+  function invalidateSearch() {
+    requestRef.current += 1;
+    setSearching(false);
+  }
   async function search() {
+    const currentRequest = ++requestRef.current;
     setSearching(true);
     setError('');
     try {
       const product = await findProduct(barcode);
+      if (currentRequest !== requestRef.current) return;
       setName(product.name);
+      productFromSearchRef.current = true;
       setProductInfo([product.brand, product.quantity].filter(Boolean).join(' · '));
     } catch (failure) {
+      if (currentRequest !== requestRef.current) return;
       setError(
         failure instanceof Error
           ? failure.message
           : 'Recherche indisponible. Saisissez le produit manuellement.',
       );
     } finally {
-      setSearching(false);
+      if (currentRequest === requestRef.current) setSearching(false);
     }
   }
   const locations: { value: StorageLocation; label: string; icon: typeof Refrigerator }[] = [
@@ -57,6 +73,7 @@ export default function ScannerView({ busy, onSave }: ScannerViewProps) {
     { value: 'placard', label: 'Placard', icon: Package },
   ];
   async function save(another: boolean) {
+    invalidateSearch();
     if (!name.trim() || !date || !Number.isFinite(quantity) || quantity <= 0) {
       setError('Renseignez le nom, une date et une quantité positive.');
       return;
@@ -79,6 +96,8 @@ export default function ScannerView({ busy, onSave }: ScannerViewProps) {
       setDate('');
       setQuantity(1);
       setError('');
+      setProductInfo('');
+      productFromSearchRef.current = false;
     }
   }
   return (
@@ -103,7 +122,14 @@ export default function ScannerView({ busy, onSave }: ScannerViewProps) {
         <button type="button" disabled title="Le scan de ticket n’est pas disponible">
           <ReceiptText size={20} /> Ticket
         </button>
-        <button type="button" aria-pressed={mode === 'manual'} onClick={() => setMode('manual')}>
+        <button
+          type="button"
+          aria-pressed={mode === 'manual'}
+          onClick={() => {
+            invalidateSearch();
+            setMode('manual');
+          }}
+        >
           <PenLine size={20} /> Manuel
         </button>
       </div>
@@ -117,7 +143,15 @@ export default function ScannerView({ busy, onSave }: ScannerViewProps) {
             inputMode="numeric"
             maxLength={14}
             value={barcode}
-            onInput={(event) => setBarcode(event.currentTarget.value)}
+            onInput={(event) => {
+              invalidateSearch();
+              if (productFromSearchRef.current) {
+                setName('');
+                setProductInfo('');
+                productFromSearchRef.current = false;
+              }
+              setBarcode(event.currentTarget.value);
+            }}
             placeholder="Ex. 8000430000216"
           />
           <button
@@ -150,7 +184,12 @@ export default function ScannerView({ busy, onSave }: ScannerViewProps) {
               maxLength={120}
               placeholder="Ex. Mozzarella di Bufala"
               value={name}
-              onInput={(event) => setName(event.currentTarget.value)}
+              onInput={(event) => {
+                invalidateSearch();
+                productFromSearchRef.current = false;
+                setProductInfo('');
+                setName(event.currentTarget.value);
+              }}
             />
             <span class="muted">{productInfo || 'Un nouveau produit, une nouvelle chance.'}</span>
           </div>
