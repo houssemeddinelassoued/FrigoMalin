@@ -1,0 +1,26 @@
+# Dépendances
+node_modules/
+
+# Build
+dist/
+dist-ssr/
+
+# Tests
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# Logs et fichiers locaux
+*.log
+*.local
+.env
+.env.*
+!.env.example
+
+# Éditeurs : seuls les réglages partagés sont versionnés
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+.DS_Store

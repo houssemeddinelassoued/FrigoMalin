@@ -1,0 +1,8 @@
+dist
+coverage
+playwright-report
+test-results
+package-lock.json
+.mcp.json
+# Documentation rédigée à la main : ne pas reformater les tableaux.
+*.md

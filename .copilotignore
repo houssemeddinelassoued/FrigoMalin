@@ -1,0 +1,36 @@
+# 1. Secrets et configuration locale
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.crt
+.npmrc
+.mcp.json
+.vscode/settings.local.json
+
+# 2. Données réelles d'utilisateurs (exports de test)
+exports/
+**/frigomalin-export*.json
+**/*.export.json
+tests/fixtures/real/
+
+# 3. Fichiers volumineux ou sans valeur pour l'IA
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+.vite/
+*.log
+*.map
+*.min.js
+package-lock.json
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.ico
+*.woff
+*.woff2

@@ -1,0 +1,13 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": "pwsh -NoProfile -NonInteractive -File .github/hooks/format-and-lint.ps1",
+        "windows": "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .github/hooks/format-and-lint.ps1",
+        "cwd": ".",
+        "timeout": 60
+      }
+    ]
+  }
+}
